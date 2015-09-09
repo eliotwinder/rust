@@ -23,14 +23,10 @@ module.exports = function(app) {
         console.log('Faved result: ', result);
         // The result returned is the number of favorites for this particular comment.
         var faveCount = {
-          favs: result
+          favs: result.count,
+          faved: result.faved
         };
         res.send(faveCount);
-
-        return Comment.getUserId(req.body.CommentId)
-          .then(function(userId){
-            return User.updateNotification(userId, 'hearts')
-          });
       })
       .catch(function(err) {
         console.log("Error: Comment not faved...", err);
@@ -150,61 +146,10 @@ module.exports = function(app) {
       });
   });
 
-
-  // // Get all comments for a given user. Defaults to loading all the
-  // // comments for the logged in user.
-  // // TODO? Add support to load comments for a given user via user id.
-  // app.get('/api/comments/get/user', jsonParser, function(req, res, next) {
-  //   // TODO: when we have our middleware checks in place,
-  //   // this shouldn't be necessary
-  //   if (req.user === undefined) {
-  //     console.log("Comments: get comments for user - user not logged in.");
-  //     res.send(401); // unauthorized
-  //     return;
-  //   }
-
-  //   var userId = req.user.id;
-  //   console.log("Comments: get comments for userId " + userId + " maxCommentId " + req.query.oldestLoadedCommentId);
-  //   console.log("Comments: get comments req.query");
-  //   console.log(req.query);
-
-  //   var searchObj = { 
-  //     UserId: userId,
-  //     isPrivate: req.query.isPrivate
-  //   };
-
-  //   // If this request is searching for a string in the comments, add it
-  //   // to our search query
-  //   if (req.query.text !== 'undefined') {
-  //     searchObj.text = {$like: '%' + req.query.text + '%'};
-  //     console.log("Comments: get - updated searchObj: ");
-  //     console.log(searchObj);
-  //   }
-
-  //   Comment.get(searchObj, req.query.oldestLoadedCommentId, userId, true, req.query.url)
-  //     .then(function(data) {
-  //       res.send(200, {
-  //         displayName: req.user.name,
-  //         comments: data.rows,
-  //         numComments: data.count,
-  //         currentTime: new Date()
-  //       });
-  //     })
-  //     .catch(function(err) {
-  //       console.log("Comments: get comments for user error ", err);
-  //       res.send(500);
-  //     });
-  // });
-
-
-  app.get('/api/comments/id/:id', jsonParser, auth.isLoggedIn, function(req, res, next) {
-    // Get individual comment
-    res.send(200);
-  });
-
   // add isAuth
   app.post('/api/comments/add', jsonParser, auth.isLoggedIn, function(req, res, next) {
     // Add a new comment!
+    console.log(req.body.repliesToId);
     Url.save({
         url: req.body.url
       })
@@ -229,6 +174,19 @@ module.exports = function(app) {
         });
       })
       .then(function(comment) {
+        // if this is a reply, add to the original user's notification
+        var repliesToId = comment.get('repliesToId');
+
+        if (repliesToId !== null){
+          Comment.get({id: repliesToId})
+            .then(function(comment){
+              User.incrementNotification(comment.rows[0].UserId, "replies");
+            })
+            .catch(function(err){
+              console.log('error adding to repliesToCheck', err);
+            })
+          ;
+        }
 
         formatComment = {
           UrlId: comment.get('UrlId'),

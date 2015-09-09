@@ -25,7 +25,6 @@ var Url = require('../').Url;
 
 
 var get = function(searchObject, urlString) {
-  console.log('##############################',searchObject);
   
   var userHearts;
   var userFlags;
@@ -68,7 +67,6 @@ var get = function(searchObject, urlString) {
   queryObject.order = [
     ['id', 'DESC']
   ];
-
 
   return Comment.findAndCountAll(queryObject)
     .then(function(results) {
@@ -214,3 +212,4 @@ exports.get = get;
 exports.post = post;
 exports.put = put;
 exports.remove = remove;
+exports.getUserId = getUserId;
