@@ -1,8 +1,14 @@
 var settings = {};
 var url = '';
 
-// tracks if we have a pending http request so that we don't receive back the same comments twice
-var requestReturned = true;
+// requestReturned tracks if we have a pending http request so that we don't receive back the same comments twice
+// tracking.mainLastCommentId, once defined, tracks last comments we've retrieved for main thread. When we get replies, we will set a key with the comments id and a value of the last loaded reply
+var tracking = {
+  requestReturned: true,
+  mainLastCommentId: null
+};
+
+
 
 document.addEventListener("DOMContentLoaded", function(e) {
 
@@ -54,11 +60,24 @@ document.addEventListener("DOMContentLoaded", function(e) {
     document.getElementById('comment-input-field').value = '';
   });
 
-
-
   // sends request for new comments when we get to the bottom of comments
   document.querySelector('.cd-panel-content').addEventListener('scroll', function(e) {
-    loadMoreComments(url);
+
+    var commentContainer = document.getElementsByClassName('cd-panel-content')[0];
+
+    // tracks if we've gotten all of the comments
+    var endOfComments = false;
+
+    // calculates how much space is left to scroll through the comments
+    var spaceLeft = commentContainer.scrollHeight - (commentContainer.clientHeight + commentContainer.scrollTop);
+
+    //if we are towards the bottom of the div, and we haven't gotten all comments, and we don't have a pending request
+    if (spaceLeft < 300 && !endOfComments && tracking.requestReturned) {
+
+      // toggle requestReturned so that we don't send two requests concurrently
+      tracking.requestReturned = false;
+      loadMoreComments($(".cd-panel-content"), url);
+    }
   });
 
 
@@ -113,7 +132,7 @@ function loadContent(url) {
 
   request.success(function(msg) {
     if (msg.comments.length > 0) {
-      lastLoadedCommentId = msg.comments[msg.comments.length - 1].id;
+      tracking.mainLastCommentId = msg.comments[msg.comments.length - 1].id;
     }
     // clean the DOM
     $(".cd-panel-content").html('');
@@ -174,27 +193,20 @@ function compileComments(comments) {
   return template(comments);
 }
 
-
-function loadMoreComments(url) {
-  var commentContainer = document.getElementsByClassName('cd-panel-content')[0];
-
-  // tracks if we've gotten all of the comments
-  var endOfComments = false;
-
-  // calculates how much space is left to scroll through the comments
-  var spaceLeft = commentContainer.scrollHeight - (commentContainer.clientHeight + commentContainer.scrollTop);
-
-  //if we are towards the bottom of the div, and we haven't gotten all comments, and we don't have a pending request
-  if (spaceLeft < 300 && !endOfComments && requestReturned) {
-
-    // toggle requestReturned so that we don't send two requests concurrently
-    requestReturned = false;
+// destination is a jquery object that you want to append to
+function loadMoreComments(destination, url, repliesToId) {
 
     var params = {
       url: encodeURIComponent(url),
-      lastUpdateId: 'undefined',
       isPrivate: false
     };
+
+    var lastCommentId;
+
+    if (repliesToId !== undefined) {
+      params.repliesToId = repliesToId;
+      lastCommentId = tracking[repliesToId];
+    }
 
     var paramString = [];
     for (var key in params) {
@@ -225,7 +237,7 @@ function loadMoreComments(url) {
 
       // compile and append new comments
       var html = compileComments(msg.comments);
-      $(".cd-panel-content").append(html);
+      destination.append(html);
       registerCommentEventListeners();
     });
 
@@ -282,6 +294,17 @@ function registerCommentEventListeners(comment) {
         // post it!
         postComment(text, repliesToId);
       }
+    });
+  }
+
+  // get elements 
+  var showReplies = document.getElementsByClassName('replies');
+  for (var i = 0; i < showReplies.length; i++){
+    $(showReplies[i]).off('click').on('click', function() {
+      console.log('working');
+      var target = $(this).parents('.comment');
+      var repliesToId = $($(this)[0]).attr('data-comment-id');
+      loadMoreComments(target, url, repliesToId);
     });
   }
 

@@ -24,7 +24,7 @@ var Url = require('../').Url;
 // not actively searching on this field.
 
 
-var get = function(searchObject, urlString) {
+var get = function(searchObject, lastCommentId, urlString) {
   
   var userHearts;
   var userFlags;
@@ -49,7 +49,7 @@ var get = function(searchObject, urlString) {
     }]
   };
 
-  if (searchObject.lastCommentId){
+  if (lastCommentId){
     queryObject.where.id = {};
     queryObject.where.id.$lt = lastCommentId;
   }

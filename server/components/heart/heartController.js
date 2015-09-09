@@ -91,6 +91,5 @@ var fave = function(searchObject) {
     });
 };
 
-fave({UserId:1,CommentId: 1});
 exports.get = get;
 exports.fave = fave;

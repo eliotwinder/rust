@@ -72,7 +72,7 @@ module.exports = function(app) {
   app.get('/api/comments/get', jsonParser, function(req, res, next) {
     var searchObject = {};
     
-    // if there is a userId, add it to searhcObject
+    // if there is a userId, add it to searchObject
     if (req.user) {
       searchObject.UserId = req.user.id;
     }
