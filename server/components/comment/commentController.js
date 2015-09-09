@@ -7,13 +7,12 @@ var Flag = require('../').Flag;
 var flagController = require('../flag');
 var Url = require('../').Url;
 
-
 // @param urlSearch: a url fragment to filter by
 var get = function(searchObject, lastCommentId, urlSearch) {
   console.log('##############################',searchObject);
   console.log('lastCommentId: ' + lastCommentId);
   console.log('urlSearch: ' + urlSearch);
-  
+
   var userHearts;
   var userFlags;
   var attributes = ['text', 'User.name', 'RepliesTo'];
@@ -35,7 +34,7 @@ var get = function(searchObject, lastCommentId, urlSearch) {
     }]
   };
 
-  if (lastCommentId) {
+  if (lastCommentId !== undefined) {
     queryObject.where.id = {};
     queryObject.where.id.$lt = lastCommentId;
   }
@@ -201,3 +200,4 @@ exports.get = get;
 exports.post = post;
 exports.put = put;
 exports.remove = remove;
+exports.getUserId = getUserId;
