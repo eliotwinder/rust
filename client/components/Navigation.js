@@ -15,7 +15,7 @@ var Navigation = React.createClass({
         </div>
         <ul className="nav navbar-nav navbar-right">
           <li><a href="test/test_favs.html">Test Page</a></li>
-          <li><Link to="website" params={{website: ""}}>Websites</Link></li>
+          <li><Link to="website">Websites</Link></li>
           <li><Link to="profile">My Profile</Link></li>
 
           <li className="dropdown">

@@ -1,4 +1,5 @@
 var React = require('react');
+var moment = require('moment');
 
 // A Comment component that can be applied to a user profile feed,
 // a url feed, or any other comment list.
@@ -17,7 +18,7 @@ var Comment = React.createClass({
   render: function() {
     return (
       <div>
-        <p><strong>{this.props.comment.User.name}</strong> | {this.props.comment.Url.url} | {this.props.comment.createdAt}</p>
+        <p><strong>{this.props.comment.User.name}</strong> | {this.props.comment.Url.url} | {moment(this.props.comment.createdAt).fromNow()}</p>
         <p>{this.props.comment.text}</p>
       </div>
     );
